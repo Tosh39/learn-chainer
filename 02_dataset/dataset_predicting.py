@@ -114,8 +114,13 @@ model = L.Classifier(MultiLayerPerceptron(100,3))
 #   predictorの精度に影響はない
 # ## npzファイルから読み込みはこちら
 # serializers.load_npz("iris_triple.npz", model)
+
 ## スナップショットから読み込みするのであればこちら
 serializers.load_npz("result/snapshot", model, path="updater/model:main/")
+## スナップショットファイルはネットワークの情報以外の情報を含んでいるため
+## スナップショットから読み込みするのであれば
+## pathの指定が必要: 'updater/model:main/'
+## https://qiita.com/ka10ryu1/items/749dd61b7494adf12dc2
 
 
 # Numpy.arrayしか受け付けていないっぽいので、一旦Numpy.arrayにする
