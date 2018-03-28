@@ -21,16 +21,6 @@ def d_print_hr():
     print("=======================================")
     print("")
 
-# ==========================
-# 設定
-# FIXME ここでサイズを定義できるようにする
-batchsize = 100 # 確率的勾配降下法で学習させる際の１回分のバッチサイズ
-n_epoch   = 20 # 学習の繰り返し回数
-n_units   = 1000 # 中間層の数
-N = 30 # 検証数
-# ==========================
-
-
 # データ取得
 iris_data = pd.read_csv('./csv/iris.csv', header=None).values
 d_print(type(iris_data))
@@ -119,43 +109,44 @@ class MultiLayerPerceptron(Chain):
 ## 2つ目の引数は導く解の数
 model = L.Classifier(MultiLayerPerceptron(100,3))
 
-# optimizerの設定
-# 今回はAdamを使用
-# https://www.scribd.com/doc/260859670/30minutes-Adam
-optimizer = optimizers.Adam()
-optimizer.setup(model)
-
-# trainerの設定
-updater = training.StandardUpdater(train_iter, optimizer)
-trainer = training.Trainer(updater, (100, 'epoch'), out='result')
-# trainer = training.Trainer(updater, (100, 'iteration'), out='result')
+# 前回の学習内容を読み込む設定
+#   npzからでもスナップショットからでも同じ内容を読み込むので
+#   predictorの精度に影響はない
+# ## npzファイルから読み込みはこちら
+# serializers.load_npz("iris_triple.npz", model)
+## スナップショットから読み込みするのであればこちら
+serializers.load_npz("result/snapshot", model, path="updater/model:main/")
 
 
-# ログなどの便利ツール =======================
+# Numpy.arrayしか受け付けていないっぽいので、一旦Numpy.arrayにする
+# https://docs.chainer.org/en/stable/tutorial/train_loop.html
+# # 直接指定する場合
+# x = np.array([5.7,3.0,4.2,1.2], dtype="float32")
+# d_print(x.shape)
 
-# モデルを検証用データで毎回評価する
-trainer.extend(extensions.Evaluator(test_iter, model))
+# 引っ張って来る場合
+index = 2
+## このanswerのうちどれかをコメントアウト
+answer = data_setosa[index]
+# answer = data_versicolor[index]
+# answer = data_virginica[index]
 
-# 評価の値をログとして残しておく
-trainer.extend(extensions.LogReport())
+x = answer[0:4]
+d_print(x.shape)
 
-# 指定された項目をコマンドライン上に表示
-# ここでいうmainはmain optimizerの対象となるlinkのことで、
-# validationは評価用エクステンションのデフォルトの名前のこと。
-# epoch 以外の項目はClassifier Linkでレポートされ、updater か evaluatorで呼び出される
-trainer.extend(extensions.PrintReport(['epoch', 'main/loss', 'validation/main/loss', 'main/accuracy', 'validation/main/accuracy']))
+x = x[None, ...]
+d_print(x.shape)
 
-# 進行度合いをプログレスバーで表示
-trainer.extend(extensions.ProgressBar())
+y = model.predictor(x)
+print("y: ", y)
+# model.predictor(x)の返り値としてそれぞれの可能性がvariableで取得できる
+#  -> 例: variable([[ 8.031654 ,  2.9862404, -6.380532 ]])
+# これのうち、一番大きい値のものである確率が高いという意味
+# この場合だと、0に該当する setosa である可能性が高いということになる
 
-# スナップショットを作成 = Trainer を保存
-## 毎回作成
-# trainer.extend(extensions.snapshot(filename='snapshot_epoch-{.updater.epoch}'))
-## 1ファイルのみ
-trainer.extend(extensions.snapshot(filename='snapshot'))
-# ============================================
+guess = y.data.argmax(axis=1)[0]
+print("y.data.argmax(axis=1)[0]: ", guess)
 
-trainer.run()
-
-# モデルを保存
-serializers.save_npz("iris_triple.npz", model)
+label = answer[4].astype(int)
+print("Expected: ", ['setosa', 'versicolor', 'virginica'][label])
+print("Guess: ",['setosa', 'versicolor', 'virginica'][guess])
