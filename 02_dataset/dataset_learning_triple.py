@@ -126,9 +126,12 @@ optimizer = optimizers.Adam()
 optimizer.setup(model)
 
 # trainerの設定
+## 初めて学習する場合
 updater = training.StandardUpdater(train_iter, optimizer)
 trainer = training.Trainer(updater, (100, 'epoch'), out='result')
 # trainer = training.Trainer(updater, (100, 'iteration'), out='result')
+
+## TODO 続きから学習する場合を追記
 
 
 # ログなどの便利ツール =======================

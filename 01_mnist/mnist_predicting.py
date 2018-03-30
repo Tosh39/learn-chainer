@@ -36,19 +36,21 @@ class MLP(Chain):
         return y
 
 model = L.Classifier(MLP(100, 10))
-optimizer = optimizers.SGD()
-optimizer.setup(model)
+serializers.load_npz('mnist.model', model)
 
-updater = training.StandardUpdater(train_iter, optimizer)
-trainer = training.Trainer(updater, (20, 'epoch'), out='result')
+# Show the output
+x, t = test[1]
+print('label:', t)
 
-trainer.extend(extensions.Evaluator(test_iter, model))
-trainer.extend(extensions.LogReport())
-trainer.extend(extensions.PrintReport(['epoch', 'main/accuracy', 'validation/main/accuracy']))
-trainer.extend(extensions.ProgressBar())
+print(type(x))
+print(x.shape)
+x = x[None, ...]
+print(type(x))
+print(x.shape)
 
-trainer.extend(extensions.snapshot(filename='snapshot'))
+y = model.predictor(x)
+print('this is y:', y)
+print('this is y.data:', y.data)
+print('this is y.data.argmax(axis=1):', y.data.argmax(axis=1))
 
-trainer.run()
-
-serializers.save_npz('mnist.model', model)
+print('predicted_label:', y.data.argmax(axis=1)[0])
