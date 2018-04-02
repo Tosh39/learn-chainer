@@ -18,8 +18,9 @@ def d_print(msg):
     if DEBUG_MODE:
         print(msg)
 def d_print_hr():
-    print("=======================================")
-    print("")
+    if DEBUG_MODE:
+        print("=======================================")
+        print("")
 
 # データ取得
 iris_data = pd.read_csv('./csv/iris.csv', header=None).values
@@ -153,5 +154,5 @@ guess = y.data.argmax(axis=1)[0]
 print("y.data.argmax(axis=1)[0]: ", guess)
 
 label = answer[4].astype(int)
-print("Expected: ", ['setosa', 'versicolor', 'virginica'][label])
-print("Guess: ",['setosa', 'versicolor', 'virginica'][guess])
+print("Correct Answer: ", ['setosa', 'versicolor', 'virginica'][label])
+print("Chainer Guess: ",['setosa', 'versicolor', 'virginica'][guess])
